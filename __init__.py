@@ -1,8 +1,9 @@
 import os
 import time
+import json
+
 from flask import Flask
 from flask_login import LoginManager
-
 from utils.database import get_user
 
 
@@ -17,7 +18,7 @@ class CustomFlask(Flask):
 
 def create_app():
     """
-    Initialize Flask and setup data
+    Initialize Flask and setup database
 
     """
     app = CustomFlask(__name__)
@@ -35,6 +36,14 @@ def create_app():
     from utils.github import update_public_repos
     db_conn = db.get_db()
     update_public_repos(db_conn)
+
+    # Init meidum cache
+    db_conn = db.get_db()
+    with open(app.config["THEME_DIR"], "r") as f:
+        data = json.load(f)
+        medium_url = data["medium_url"]
+    from utils.medium import update_articles
+    update_articles(db_conn, medium_url)
 
     # Register blueprints
     import home
